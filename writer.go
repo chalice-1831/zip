@@ -11,6 +11,7 @@ import (
 	"hash"
 	"hash/crc32"
 	"io"
+	"time"
 )
 
 // TODO(adg): support zip file comments
@@ -189,6 +190,7 @@ func (w *Writer) Create(name string) (io.Writer, error) {
 		Name:   name,
 		Method: Deflate,
 	}
+	header.SetModTime(time.Now())
 	return w.CreateHeader(header)
 }
 

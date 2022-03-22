@@ -163,6 +163,7 @@ type directoryEnd struct {
 
 // msDosTimeToTime converts an MS-DOS date and time into a time.Time.
 // The resolution is 2s.
+// Use server time zone as baseline
 // See: http://msdn.microsoft.com/en-us/library/ms724247(v=VS.85).aspx
 func msDosTimeToTime(dosDate, dosTime uint16) time.Time {
 	return time.Date(
@@ -177,15 +178,16 @@ func msDosTimeToTime(dosDate, dosTime uint16) time.Time {
 		int(dosTime&0x1f*2),
 		0, // nanoseconds
 
-		time.UTC,
+		time.Local,
 	)
 }
 
 // timeToMsDosTime converts a time.Time to an MS-DOS date and time.
 // The resolution is 2s.
+// Use server time zone as baseline
 // See: http://msdn.microsoft.com/en-us/library/ms724274(v=VS.85).aspx
 func timeToMsDosTime(t time.Time) (fDate uint16, fTime uint16) {
-	t = t.In(time.UTC)
+	t = t.In(time.Local)
 	fDate = uint16(t.Day() + int(t.Month())<<5 + (t.Year()-1980)<<9)
 	fTime = uint16(t.Second()/2 + t.Minute()<<5 + t.Hour()<<11)
 	return
@@ -197,7 +199,7 @@ func (h *FileHeader) ModTime() time.Time {
 	return msDosTimeToTime(h.ModifiedDate, h.ModifiedTime)
 }
 
-// SetModTime sets the ModifiedTime and ModifiedDate fields to the given time in UTC.
+// SetModTime sets the ModifiedTime and ModifiedDate fields to the given time in server time zone.
 // The resolution is 2s.
 func (h *FileHeader) SetModTime(t time.Time) {
 	h.ModifiedDate, h.ModifiedTime = timeToMsDosTime(t)
